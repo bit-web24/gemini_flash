@@ -1,22 +1,19 @@
 use curl::easy::{Easy, List};
 use neon::prelude::*;
+use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use serde_json::to_string;
-use pulldown_cmark::{Event, Parser, Tag, TagEnd, Options};
 
 mod request;
 mod response;
 use request::*;
-// use response::Response;
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("generate_content", generate_content)?;
-    cx.export_function("markdown_to_text", markdown_to_text)?;
     Ok(())
 }
 
-// @args api_key: String, prompt: &str
-pub fn generate_content(mut cx: FunctionContext) -> JsResult<JsString> {
+pub fn generate_content(mut cx: FunctionContext) -> JsResult<JsObject> {
     let api_key = cx.argument::<JsString>(0)?.value(&mut cx);
     let prompt = cx.argument::<JsString>(1)?.value(&mut cx);
 
@@ -56,13 +53,13 @@ pub fn generate_content(mut cx: FunctionContext) -> JsResult<JsString> {
     }
 
     let json_data = String::from_utf8(response_data).unwrap();
-    // let response: Response = serde_json::from_str(json_data.as_str()).unwrap();
-    // response
-    Ok(cx.string(json_data))
+    let response: response::Response = serde_json::from_str(json_data.as_str()).unwrap();
+    let js_res_obj = to_jsobj(cx, response);
+
+    Ok(js_res_obj.unwrap())
 }
 
-pub fn markdown_to_text(mut cx: FunctionContext) -> JsResult<JsString> {
-    let markdown = cx.argument::<JsString>(0)?.value(&mut cx);
+pub fn markdown_to_text(markdown: &str) -> String {
     let options = Options::empty();
     let parser = Parser::new_ext(&markdown, options);
     let mut plain_text = String::new();
@@ -71,18 +68,40 @@ pub fn markdown_to_text(mut cx: FunctionContext) -> JsResult<JsString> {
         match event {
             Event::Text(text) | Event::Code(text) => plain_text.push_str(&text),
             Event::Start(tag) => match tag {
-                Tag::Paragraph | Tag::Heading{..} => plain_text.push_str("\n\n"),
+                Tag::Paragraph | Tag::Heading { .. } => plain_text.push_str("\n\n"),
                 Tag::List(_) => plain_text.push('\n'),
                 Tag::Item => plain_text.push_str("\n• "),
-                _ => {},
+                _ => {}
             },
             Event::End(tag) => match tag {
-                TagEnd::Paragraph | TagEnd::Heading{..} => plain_text.push('\n'),
-                _ => {},
+                TagEnd::Paragraph | TagEnd::Heading { .. } => plain_text.push('\n'),
+                _ => {}
             },
             _ => {}
         }
     }
 
-    Ok(cx.string(plain_text))
+    plain_text
+}
+
+fn to_jsobj(mut cx: FunctionContext, res: response::Response) -> JsResult<JsObject> {
+    let obj = cx.empty_object();
+
+    let text = cx.string(markdown_to_text(&res.candidates[0].content.parts[0].text));
+    obj.set(&mut cx, "text", text)?;
+
+    let finish_reason = cx.string(&res.candidates[0].finishReason);
+    obj.set(&mut cx, "finish_reason", finish_reason)?;
+
+    let usage_metadata = cx.string(to_string(&res.usageMetadata).unwrap());
+    obj.set(&mut cx, "usage_metadata", usage_metadata)?;
+
+    let role = cx.string(&res.candidates[0].content.role);
+    obj.set(&mut cx, "role", role)?;
+
+    let prompt_feedback = to_string(&res.candidates[0].safetyRatings).unwrap();
+    let prompt_feedback_str = cx.string(prompt_feedback);
+    obj.set(&mut cx, "prompt_feedback", prompt_feedback_str)?;
+
+    Ok(obj)
 }

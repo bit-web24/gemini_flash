@@ -2,7 +2,7 @@
   "name": "gemini_flash",
   "version": "0.1.0",
   "description": "Client for Google's Gemini-1.5-Flash Generative AI Model",
-  "main": "index.node",
+  "main": "lib/index.js",
   "scripts": {
     "test": "cargo test",
     "cargo-build": "cargo build --message-format=json > cargo.log",

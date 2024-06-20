@@ -14,7 +14,6 @@ pub struct Candidate {
     pub finishReason: String,
     pub index: u32,
     pub safetyRatings: Vec<SafetyRating>,
-    pub citationMetadata: CitationMetadata,
 }
 
 #[allow(non_snake_case)]
@@ -39,12 +38,6 @@ pub struct SafetyRating {
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CitationMetadata {
-    pub citationSources: Vec<CitationSource>,
-}
-
-#[allow(non_snake_case)]
-#[derive(Serialize, Deserialize, Debug)]
 pub struct CitationSource {
     pub startIndex: u32,
     pub endIndex: u32,
@@ -59,17 +52,3 @@ pub struct UsageMetadata {
     pub candidatesTokenCount: u32,
     pub totalTokenCount: u32,
 }
-
-// impl Response {
-//     pub fn text(&self) -> String {
-//         utils::markdown_to_text(self.candidates[0].content.parts[0].text.as_str())
-//     }
-
-//     pub fn prompt_feedback(&self) -> &Vec<SafetyRating> {
-//         self.candidates[0].safetyRatings.as_ref()
-//     }
-
-//     pub fn candidates(&self) -> &Vec<Candidate> {
-//         self.candidates.as_ref()
-//     }
-// }
