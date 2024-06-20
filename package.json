@@ -1,0 +1,25 @@
+{
+  "name": "gemini_flash",
+  "version": "0.1.0",
+  "description": "Client for Google's Gemini-1.5-Flash Generative AI Model",
+  "main": "index.node",
+  "scripts": {
+    "test": "cargo test",
+    "cargo-build": "cargo build --message-format=json > cargo.log",
+    "cross-build": "cross build --message-format=json > cross.log",
+    "postcargo-build": "neon dist < cargo.log",
+    "postcross-build": "neon dist -m /target < cross.log",
+    "debug": "npm run cargo-build --",
+    "build": "npm run cargo-build -- --release",
+    "cross": "npm run cross-build -- --release"
+  },
+  "author": "Bittu Kumar",
+  "license": "ISC",
+  "devDependencies": {
+    "@neon-rs/cli": "0.1.73"
+  },
+  "keywords": [
+    "gemini-flash",
+    "genai"
+  ]
+}
