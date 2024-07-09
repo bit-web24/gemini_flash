@@ -50,8 +50,9 @@ Generates content based on the given prompt.
 
 **Returns**: A Promise that resolves to an object containing the generated content.
 
-### Example
+### Examples
 
+#### Text-only input
 ```javascript
 const GeminiFlash = require('gemini_flash');
 
@@ -66,6 +67,38 @@ const gemini_flash = new GeminiFlash('your-api-key');
         console.error("Error:", error);
     }
 })();
+```
+
+#### Text-and-Image Input
+```javascript
+const fs = require('fs').promises;
+const GeminiFlash = require('gemini_flash');
+
+const gemini_flash = new GeminiFlash('your-api-key');
+
+async function imageToBase64(imagePath) {
+    try {
+        const imageBuffer = await fs.readFile(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+        return base64Image;
+    } catch (err) {
+        console.error("Error reading the image file:", err);
+        throw err;
+    }
+}
+
+(async () => {
+    try {
+        const prompt = "Explain this image";
+        const imagePath = './image.jpeg';
+        const base64String = await imageToBase64(imagePath);
+        const content = await gemini_flash.image_search(prompt, base64String);
+        console.log("Generated Content:", content.text);
+    } catch (error) {
+        console.error("Error:", error);
+    }
+})();
+
 ```
 
 ## Development
