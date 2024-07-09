@@ -2,14 +2,17 @@ use curl::easy::{Easy, List};
 use neon::prelude::*;
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use serde_json::to_string;
+mod image_search;
 
 mod request;
 mod response;
 use request::*;
+use image_search::image_search;
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("generate_content", generate_content)?;
+    cx.export_function("image_search", image_search)?;
     Ok(())
 }
 
